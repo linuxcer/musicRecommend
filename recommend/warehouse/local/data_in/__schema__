@@ -1,0 +1,3 @@
+project=local
+table=data_in
+columns=user:STRING,song:STRING,author:STRING,cnt:BIGINT

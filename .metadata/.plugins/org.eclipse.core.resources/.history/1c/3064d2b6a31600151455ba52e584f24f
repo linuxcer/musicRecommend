@@ -1,0 +1,34 @@
+package process;
+
+public class model {
+	package process;
+	import java.io.BufferedReader;
+	import java.io.File;
+	import java.io.FileInputStream;
+	import java.io.IOException;
+	import java.io.InputStreamReader;
+	import java.util.HashMap;
+	public class main {
+		
+
+	    	HashMap<String, HashMap<String, Integer>> map = new HashMap<String, HashMap<String, Integer>>();
+	        String filepath = "/home/zhangchengfei/temp/userInfo.csv";
+	        File filename = new File(filepath);
+	        InputStreamReader reader = new InputStreamReader(new FileInputStream(filename));
+	        BufferedReader br = new BufferedReader(reader);
+
+	        String line = br.readLine();
+	        while (line != null) {
+	            line = br.readLine(); // 一次读入一行数据
+	            if (line != null) {
+	                System.out.println(line);
+	            }
+
+	        }
+	    
+		
+	}
+
+	main
+
+}

@@ -1,0 +1,4 @@
+project=local
+table=wordcount_in
+columns=word:STRING
+partitions=dt:STRING

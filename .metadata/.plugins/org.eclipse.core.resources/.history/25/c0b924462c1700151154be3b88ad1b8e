@@ -1,0 +1,59 @@
+package process;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.HashMap;
+
+public class model {
+
+	public static void main(String[] args) throws IOException {
+		// TODO Auto-generated method stub
+		HashMap<String, HashMap<String, Integer>> map = new HashMap<String, HashMap<String, Integer>>();
+        String filepath = "/home/zhangchengfei/workspace/musicRecommend/recommend/warehouse/local/data_out/R_000000";
+        File filename = new File(filepath);
+        InputStreamReader reader;
+		try {
+			reader = new InputStreamReader(new FileInputStream(filename));
+	        BufferedReader br = new BufferedReader(reader);
+	        String user;
+	        String song;
+	        String author;
+	        String songKey;
+	        String preSongkey = "";
+	        int cnt;
+	        String line = br.readLine();
+	        while (line != null) {
+            	// 获取每一行信息
+            	String [] Info = line.split(",");
+            	user = Info[0];
+            	song = Info[1];
+            	author = Info[2];
+            	songKey = song + "," + author; //将歌曲和歌唱家作为key
+            	
+            	cnt = Integer.parseInt(Info[3]);
+            	// 将信息映射到hashmap中
+                if (map.containsKey(user)) {
+                	// 用户已经存在
+                	HashMap <String, Integer> songCnt = map.get(preSongkey);
+                	songCnt.put(songKey, cnt);
+                } else {
+                	// 用户不存在
+                	HashMap <String, Integer> songCnt = new HashMap<String, Integer>();
+                	songCnt.put(songKey, cnt);
+                	map.put(user, songCnt);
+                }
+                preSongkey = songKey; // 保存上一个hashkey
+	            line = br.readLine(); // 一次读入一行数据
+
+	        }
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+}

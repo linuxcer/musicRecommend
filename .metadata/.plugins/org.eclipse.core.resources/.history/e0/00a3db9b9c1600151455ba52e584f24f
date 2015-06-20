@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapred>
+    <!-- profile -->
+    <baseId>1</baseId>
+    <projectId>1</projectId>
+    <resourceName>recommend</resourceName>
+    <idePath>workflow/myfolder</idePath>
+
+    <!-- classes -->
+    <jobLauncher>zcf.group.recommend.JobLauncher</jobLauncher>
+    <mapper>zcf.group.recommend.MyMapper</mapper>
+    <reducer>zcf.group.recommend.MyReducer</reducer>
+    <combiner>zcf.group.recommend.MyCombiner</combiner>
+
+    <!--task-->
+    <mapOutputKey>word:string</mapOutputKey>
+    <mapOutputValue>cnt:bigint</mapOutputValue>
+    <!--
+    <partitionColumns>col1,col2</partitionColumns>
+    <outputKeySortColumns>col1,col2</outputKeySortColumns>
+    <outputKeySortOrders>ASC,DESC</outputKeySortOrders>
+    <outputGroupingColumns>col1,col2</outputGroupingColumns>
+    <numReduceTask>8</numReduceTask>
+    <memoryForMapTask>2048</memoryForMapTask>
+    <memoryForReduceTask>2048</memoryForReduceTask>
+    -->
+
+    <!-- tables -->
+    <inputTables>
+        <table>
+            <name>wordcount_in</name>
+            <partitions>
+                <partition>dt={yyyymmdd}</partition>
+                <partition>dt={yyyymmdd-1}</partition>
+            </partitions>
+        </table>
+    </inputTables>
+    <outputTable>
+        <name>wordcount_out</name>
+        <partition>dt={yyyymmdd}</partition>
+    </outputTable>
+</mapred>

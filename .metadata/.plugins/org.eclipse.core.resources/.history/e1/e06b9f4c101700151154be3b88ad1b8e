@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapred>
+    <!-- profile -->
+    <baseId>1</baseId>
+    <projectId>1</projectId>
+    <resourceName>recommend</resourceName>
+    <idePath>workflow/myfolder</idePath>
+
+    <!-- classes -->
+    <jobLauncher>zcf.group.recommend.JobLauncher</jobLauncher>
+    <mapper>zcf.group.recommend.MyMapper</mapper>
+    <reducer>zcf.group.recommend.MyReducer</reducer>
+    <combiner></combiner>
+
+    <!--task-->
+    <mapOutputKey>user:STRING,song:STRING</mapOutputKey>
+    <mapOutputValue>cnt:BIGINT</mapOutputValue>
+    <!--
+    <partitionColumns>col1,col2</partitionColumns>
+    <outputKeySortColumns>col1,col2</outputKeySortColumns>
+    <outputKeySortOrders>ASC,DESC</outputKeySortOrders>
+    <outputGroupingColumns>col1,col2</outputGroupingColumns>
+    <numReduceTask>8</numReduceTask>
+    <memoryForMapTask>2048</memoryForMapTask>
+    <memoryForReduceTask>2048</memoryForReduceTask>
+    -->
+
+    <!-- tables -->
+    <inputTables>
+        <table>
+            <name>data_in</name>
+        </table>
+    </inputTables>
+    <outputTable>
+        <name>data_out</name>
+    </outputTable>
+</mapred>

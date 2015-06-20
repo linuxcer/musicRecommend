@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><configuration>
+<property><name>odps.mapred.input.desc</name><value>[{"tblName":"data_in","partSpec":{},"label":"__default__"}]</value></property>
+<property><name>odps.mapred.map.class</name><value>zcf.group.recommend.MyMapper</value></property>
+<property><name>odps.mapred.job.name</name><value>mr_20150620135048_374_20025</value></property>
+<property><name>odps.mapred.mapoutput.key.schema</name><value>user:STRING,song:STRING,author:STRING</value></property>
+<property><name>odps.mapred.mapoutput.value.schema</name><value>cnt:BIGINT</value></property>
+<property><name>odps.mapred.output.desc</name><value>[{"tblName":"data_out","partSpec":{},"label":"__default__"}]</value></property>
+<property><name>odps.mapred.reduce.class</name><value>zcf.group.recommend.MyReducer</value></property>
+</configuration>

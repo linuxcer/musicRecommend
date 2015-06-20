@@ -1,0 +1,3 @@
+project=local
+table=data_out
+columns=user:STRING,song:STRING,cnt:BIGINT

@@ -1,0 +1,190 @@
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class model {
+
+
+	public static void main(String[] args) throws IOException {
+		String targetUser = "(*￣(エ)￣)";
+        if (args.length != 1) {
+            System.out.println("Please input target User");
+            return;
+        } else {
+            targetUser = args[0];
+        }
+
+
+		// TODO Auto-generated method stub
+        ////////////////////////////////////////////////////////////////////////////////////////////////
+        //                                                                                            //
+        //                                        获取评价矩阵                                          //
+        //                                                                                            //
+        ////////////////////////////////////////////////////////////////////////////////////////////////
+		HashMap<String, HashMap<String, Integer>> map = new HashMap<String, HashMap<String, Integer>>();
+        String filepath = "train.csv"; 
+        File filename = new File(filepath);
+        InputStreamReader reader;
+		try {
+			reader = new InputStreamReader(new FileInputStream(filename));
+	        BufferedReader br = new BufferedReader(reader);
+	        String user;
+	        String song;
+	        String author;
+	        String songKey;
+	        int cnt;
+	        String line = br.readLine();
+	        while (line != null) {
+            	// 获取每一行信息
+            	String [] Info = line.split(",");
+            	user = Info[0];
+            	song = Info[1];
+            	author = Info[2];
+            	songKey = song + "," + author; //将歌曲和歌唱家作为key
+            	
+            	cnt = Integer.parseInt(Info[3]);
+            	// 将信息映射到hashmap中
+                if (map.containsKey(user)) {
+                	// 用户已经存在
+                	HashMap <String, Integer> songCnt = map.get(user);
+                	songCnt.put(songKey, cnt);
+                } else {
+                	// 用户不存在
+                	HashMap <String, Integer> songCnt = new HashMap<String, Integer>();
+                	songCnt.put(songKey, cnt);
+                	map.put(user, songCnt);
+                }
+	            line = br.readLine(); // 一次读入一行数据
+	        }
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+        ////////////////////////////////////////////////////////////////////////////////////////////////
+        //                                                                                            //
+        //                                       求解余弦相似度                                          //
+        //                                                                                            //
+        ////////////////////////////////////////////////////////////////////////////////////////////////
+		// String targetUser = "(*￣(エ)￣)";
+        
+		HashMap <String, Integer> targetUserVector = map.get(targetUser); // 获取目标用户的向量
+		Double joinCnt = 0.0; // target用户与其他用户交集上的评分集合
+		Double targetCnt = 0.0; // target评分集合
+		Double userIterCnt = 0.0; // 其他用户评分集合
+		Double simValue = 0.0; // 临时存储每个用户的相似度
+		HashMap <String, Double> cosValue = new HashMap<String, Double>();  //存取用户相似度
+		String userIter = "";
+		
+		// 求解target评分集合
+		for (Map.Entry<String, Integer> entry : targetUserVector.entrySet()) {
+			targetCnt += Math.pow(entry.getValue(), 2);
+		}
+		
+		for (Map.Entry<String, HashMap<String, Integer>> entry : map.entrySet()) {
+			userIter = entry.getKey();
+			if (!userIter.equals(targetUser)) { // 排除目标用户
+				userIterCnt = 0.0;
+				joinCnt = 0.0;
+				// 遍历这个用户的所有行为
+				for (Map.Entry<String, Integer> iter : entry.getValue().entrySet()) {
+					userIterCnt += Math.pow(iter.getValue(), 2); // 用户评分集合
+					if (targetUserVector.containsKey(iter.getKey())) {
+						// 两个用户有交集
+						joinCnt += iter.getValue() * targetUserVector.get(iter.getKey());
+					}
+				}
+				simValue = joinCnt / (Math.sqrt(targetCnt) + Math.sqrt(userIterCnt)); // 求解相似度
+				cosValue.put(userIter, simValue);
+			}
+		}
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		//                                                                                            //
+		//                                   求最近邻用户TopK                                           //
+		//                                                                                            //
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		int simUsertopK = 10; // 求前10个
+		// 排序用户相似度
+		List<Map.Entry<String, Double>> simTopKuser = new ArrayList<Map.Entry<String, Double>>(cosValue.entrySet());
+		System.setProperty("java.util.Arrays.useLegacyMergeSort", "true");  // 解决JDK7中比较器问题
+		Collections.sort(simTopKuser, new Comparator<Map.Entry<String, Double>>() {
+			public int compare(Map.Entry<String, Double> v1, Map.Entry<String, Double> v2) {
+				if (v1.getValue().compareTo(v2.getValue()) > 0) {
+					return -1;
+				} else {
+					return 1;
+				}
+			}
+		});
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		//                                                                                            //
+		//                                   计算推荐矩阵                                               //
+		//                                                                                            //
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		// result中的一维数组，我们在第一个[0]中存评分结果的分子部分，[1]存评分结果分母部分
+		HashMap<String, Double []> result = new HashMap<String, Double []>(); 
+		HashMap<String, Double> predict = new HashMap<String, Double>(); // 记录最终评价分数
+		for (int i = 0; i < Math.min(simUsertopK, simTopKuser.size()); ++i) {
+			// 对某个用户的所有歌曲进行遍历
+			Double Cos =  simTopKuser.get(i).getValue();
+			for (Map.Entry<String, Integer> entry : map.get(simTopKuser.get(i).getKey()).entrySet()) {
+				if (result.containsKey(entry.getKey())) {
+					Double [] predict2 = result.get(entry.getKey());
+					predict2[0] = Cos * entry.getValue() + predict2[0];
+					predict2[1] = Math.abs(Cos) + predict2[1];
+					result.put(entry.getKey(), predict2);
+				} else {
+					Double [] predict1 = {0.0, 0.0};
+					predict1[0] =  Cos * entry.getValue();
+					predict1[1] = Math.abs(Cos);
+					result.put(entry.getKey(), predict1);
+				}
+			}
+		}
+		// 得到最终的推荐矩阵
+		for (Map.Entry<String, Double []> entry : result.entrySet()) {
+			predict.put(entry.getKey(), entry.getValue()[0] / Math.sqrt(entry.getValue()[1]));
+			//System.out.println(entry.getValue()[0] / Math.sqrt(entry.getValue()[1]));
+		}
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		//                                                                                            //
+		//                              推荐分值最高的TopK首歌                                           //
+		//                                                                                            //
+		////////////////////////////////////////////////////////////////////////////////////////////////
+		List<Map.Entry<String, Double>> TopKsong = new ArrayList<Map.Entry<String, Double>>(predict.entrySet());
+		Collections.sort(TopKsong, new Comparator<Map.Entry<String, Double>>() {
+			public int compare(Map.Entry<String, Double> v1, Map.Entry<String, Double> v2) {
+				if (v1.getValue().compareTo(v2.getValue()) > 0) {
+					return -1;
+				} else {
+					return 1;
+				}
+			}
+		});
+		// 写结果
+		try {
+			FileWriter fw = new FileWriter("Result.csv");
+			for (int i = 0; i < Math.min(TopKsong.size(), 20); ++i) { // 推荐前20首歌
+				fw.write(TopKsong.get(i).getKey() + "," + TopKsong.get(i).getValue() + "\n");
+			}
+			fw.close();
+			System.out.println("Recommmen Success!");
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+}
+
